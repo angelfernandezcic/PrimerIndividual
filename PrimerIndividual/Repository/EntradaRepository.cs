@@ -1,32 +1,33 @@
 ﻿using PrimerIndividual.Models;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Web;
 
 namespace PrimerIndividual.Repository
 {
-    public class EntradaRepository
+    public class EntradaRepository : IEntradaRepository
     {
         public Entrada Create(Entrada entrada)
         {
-            return ApplicationDbContext.applicationDbContext.CuentasBancarias.Add(entrada);
+            return ApplicationDbContext.applicationDbContext.Entradas.Add(entrada);
         }
         
         public Entrada Get(long Id)
         {
-            return ApplicationDbContext.applicationDbContext.CuentasBancarias.Find(Id);
+            return ApplicationDbContext.applicationDbContext.Entradas.Find(Id);
         }
 
         public IQueryable<Entrada> Get()
         {
-            IList<Entrada> lista = new List<Entrada>(ApplicationDbContext.applicationDbContext.CuentasBancarias);
+            IList<Entrada> lista = new List<Entrada>(ApplicationDbContext.applicationDbContext.Entradas);
             return lista.AsQueryable();
         }
 
         public void Put(Entrada entrada)
         {
-            if (ApplicationDbContext.applicationDbContext.CuentasBancarias.Count(e => e.Id == entrada.Id) == 0)
+            if (ApplicationDbContext.applicationDbContext.Entradas.Count(e => e.Id == entrada.Id) == 0)
             {
                 throw new NoEncontradoException("No he encontrado la entidad");
             }
@@ -35,13 +36,13 @@ namespace PrimerIndividual.Repository
 
         public Entrada Delete(long id)
         {
-            Entrada entrada = ApplicationDbContext.applicationDbContext.CuentasBancarias.Find(id);
+            Entrada entrada = ApplicationDbContext.applicationDbContext.Entradas.Find(id);
             if (entrada == null)
             {
                 throw new NoEncontradoException("No he encontrado la entidad");
             }
 
-            ApplicationDbContext.applicationDbContext.CuentasBancarias.Remove(entrada);
+            ApplicationDbContext.applicationDbContext.Entradas.Remove(entrada);
             return entrada;
         }
     }

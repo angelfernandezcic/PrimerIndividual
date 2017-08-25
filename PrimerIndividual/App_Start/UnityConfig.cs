@@ -1,6 +1,10 @@
 using Microsoft.Practices.Unity;
+using Microsoft.Practices.Unity.InterceptionExtension;
+using PrimerIndividual.Models;
 using PrimerIndividual.Repository;
 using PrimerIndividual.Service;
+using System;
+using System.Collections.Generic;
 using System.Web.Http;
 using Unity.WebApi;
 
@@ -25,13 +29,72 @@ namespace PrimerIndividual
             container.RegisterType<IEntradaService, EntradaService>(
               new Interceptor<InterfaceInterceptor>(),
               new InterceptionBehavior<LoggingInterceptionBehavior>());
-            container.RegisterType<ICuentaBancariaRepository, CuentaBancariaRepository>();
-            container.RegisterType<ICuentaBancariaService, CuentaBancariaService>(
-              new Interceptor<InterfaceInterceptor>(),
-              new InterceptionBehavior<LoggingInterceptionBehavior>());
 
 
             GlobalConfiguration.Configuration.DependencyResolver = new UnityDependencyResolver(container);
+        }
+    }
+
+    class LoggingInterceptionBehavior : IInterceptionBehavior
+    {
+        public IMethodReturn Invoke(IMethodInvocation input,
+               GetNextInterceptionBehaviorDelegate getNext)
+        {
+            IMethodReturn result;
+            if (ApplicationDbContext.applicationDbContext == null)
+            {
+                using (var context = new ApplicationDbContext())
+                {
+                    ApplicationDbContext.applicationDbContext = context;
+                    using (var dbContextTransaction = context.Database.BeginTransaction())
+                    {
+                        try
+                        {
+                            result = getNext()(input, getNext);
+                            if (result.Exception != null)
+                            {
+                                throw result.Exception;
+                            }
+
+                            context.SaveChanges();
+
+                            dbContextTransaction.Commit();
+                        }
+                        catch (Exception e)
+                        {
+                            dbContextTransaction.Rollback();
+                            ApplicationDbContext.applicationDbContext = null;
+                            throw new Exception("He hecho rollback de la transacción", e);
+                        }
+                    }
+                }
+                ApplicationDbContext.applicationDbContext = null;
+                return result;
+            }
+            else
+            {
+                result = getNext()(input, getNext);
+                if (result.Exception != null)
+                {
+                    throw new Exception("Ocurrió una excepción" + result.Exception);
+                }
+                return result;
+            }
+        }
+
+        public IEnumerable<Type> GetRequiredInterfaces()
+        {
+            return Type.EmptyTypes;
+        }
+
+        public bool WillExecute
+        {
+            get { return true; }
+        }
+
+        private void WriteLog(string message)
+        {
+
         }
     }
 }
