@@ -10,6 +10,6 @@ namespace PrimerIndividual
         public long Id { get; set; }
         public long Butaca { get; set; }
         public long Fila { get; set; }
-        public double Precio { get; set; }
+        public double Precio { get; set;}
     }
 }

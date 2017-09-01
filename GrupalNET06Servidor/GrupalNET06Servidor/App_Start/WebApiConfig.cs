@@ -6,7 +6,7 @@ using System.Web.Http;
 using Microsoft.Owin.Security.OAuth;
 using Newtonsoft.Json.Serialization;
 
-namespace PrimerIndividual
+namespace GrupalNET06Servidor
 {
     public static class WebApiConfig
     {
@@ -19,7 +19,6 @@ namespace PrimerIndividual
 
             // Web API routes
             config.MapHttpAttributeRoutes();
-            config.EnableCors();
 
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",
